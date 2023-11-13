@@ -111,7 +111,7 @@ async fn test_edge(){
     let data: EdgeData = serde_json::from_str(data).unwrap();
     let nat_edge: EdgeDocument = Edge { 
         link: ArangoEdgeKeys { to: to_doc.keys.id, from: from_doc.keys.id }, 
-        record: data 
+        edge: data 
     };
     let real_edge: Doc<Edge<EdgeData>> = document.insert(&nat_edge).await.unwrap();
     

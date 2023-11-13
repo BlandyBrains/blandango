@@ -170,16 +170,16 @@ where
     pub link: ArangoEdgeKeys,
     
     #[serde(flatten)]
-    pub record: R
+    pub edge: R
 }
 
 impl<R> Edge<R> 
 where 
 R: Sized + Sync + Send{
-    pub fn new(from: String, to: String, record: R) -> Self {
+    pub fn new(from: String, to: String, edge: R) -> Self {
         Self {
             link: ArangoEdgeKeys { to, from },
-            record
+            edge
         }
     }
 
@@ -198,6 +198,15 @@ mod test {
 
         type MyTestWrapper = Doc<MyTestData>;
         assert_eq!(name::<MyTestWrapper>(), "my_test_data");
+
+        type MyTestEdgeWrapper = Doc<Edge<MyTestData>>;
+        assert_eq!(name::<MyTestEdgeWrapper>(), "my_test_data");
+
+        struct Wrapper<T>{
+            inner: T
+        }
+        type GoodWrapper = Doc<Edge<Wrapper<MyTestData>>>;
+        assert_eq!(name::<GoodWrapper>(), "wrapper");        
     }
 
     #[test]
@@ -217,18 +226,20 @@ mod test {
             "_rev": "1234",
             "_to": "collection_a/2",
             "_from": "collection_b/3",
-            "data": "SOME_DATA"
+            "data": "SOME_DATA",
+            "modified_on": 1,
+            "created_on": 0
         }
         "#;
 
-        let test_data: Edge<MyTestData> = serde_json::from_str(data).unwrap();
+        let test_data: Doc<Edge<MyTestData>> = serde_json::from_str(data).unwrap();
 
-        // assert_eq!(test_data.keys.id, "collection/1");
-        // assert_eq!(test_data.keys.key, "1");
-        // assert_eq!(test_data.keys.rev, "1234");
-        assert_eq!(test_data.link.to, "collection_a/2");
-        assert_eq!(test_data.link.from, "collection_b/3");
-        assert_eq!(test_data.record.data, "SOME_DATA");
+        assert_eq!(test_data.keys.id, "collection/1");
+        assert_eq!(test_data.keys.key, "1");
+        assert_eq!(test_data.keys.rev, "1234");
+        assert_eq!(test_data.record.link.to, "collection_a/2");
+        assert_eq!(test_data.record.link.from, "collection_b/3");
+        assert_eq!(test_data.record.edge.data, "SOME_DATA");
 
         // println!("DATA: {:#?}", test_data);
     }
